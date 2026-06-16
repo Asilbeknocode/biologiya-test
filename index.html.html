@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Biologiya Testi</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --green: #1D9E75; --green-dark: #0F6E56; --green-light: #E1F5EE; --green-text: #085041;
+    --red-light: #FCEBEB; --red: #E24B4A; --red-text: #501313;
+    --bg: #F7F7F5; --card: #fff; --text: #1a1a1a; --muted: #6b7280;
+    --border: rgba(0,0,0,0.1); --radius: 12px;
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  nav { background: var(--card); border-bottom: 1px solid var(--border); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+  .logo { font-size: 17px; font-weight: 600; color: var(--green); }
+  .nav-badge { font-size: 12px; background: var(--green-light); color: var(--green-text); padding: 3px 10px; border-radius: 99px; display: none; }
+  .nav-badge.show { display: inline-block; }
+
+  .container { max-width: 680px; margin: 0 auto; padding: 32px 20px 60px; }
+
+  #setup h1 { font-size: 28px; font-weight: 600; margin-bottom: 6px; }
+  #setup > p { color: var(--muted); font-size: 15px; margin-bottom: 28px; }
+  .section-label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
+  .topics { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 10px; margin-bottom: 28px; }
+  .topic { padding: 12px 14px; background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius); cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.15s; user-select: none; }
+  .topic:hover { border-color: var(--green); }
+  .topic.on { background: var(--green-light); border-color: var(--green); color: var(--green-text); }
+  .config { display: flex; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+  .config-item { display: flex; flex-direction: column; gap: 6px; }
+  .config-item label { font-size: 13px; font-weight: 500; color: var(--muted); }
+  select { padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; background: var(--card); color: var(--text); cursor: pointer; }
+  .start-btn { width: 100%; padding: 14px; background: var(--green); color: #fff; border: none; border-radius: var(--radius); font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+  .start-btn:hover:not(:disabled) { background: var(--green-dark); }
+  .start-btn:disabled { background: #ccc; cursor: not-allowed; }
+  .error { background: var(--red-light); color: var(--red-text); padding: 12px 16px; border-radius: 8px; font-size: 14px; margin-bottom: 16px; display: none; }
+
+  #loading { text-align: center; padding: 60px 20px; display: none; }
+  .spinner { width: 44px; height: 44px; border: 3px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loading p { color: var(--muted); font-size: 15px; }
+
+  #quiz { display: none; }
+  .prog-wrap { margin-bottom: 24px; }
+  .prog-top { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  .prog-bar { height: 6px; background: var(--border); border-radius: 99px; }
+  .prog-fill { height: 100%; background: var(--green); border-radius: 99px; transition: width 0.3s; }
+  .q-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
+  .q-tag { font-size: 12px; font-weight: 600; color: var(--green); background: var(--green-light); display: inline-block; padding: 3px 10px; border-radius: 99px; margin-bottom: 14px; }
+  .q-text { font-size: 17px; font-weight: 500; line-height: 1.55; margin-bottom: 20px; }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .opt { padding: 12px 16px; border: 1.5px solid var(--border); border-radius: 10px; cursor: pointer; font-size: 15px; transition: all 0.15s; background: var(--card); text-align: left; font-family: inherit; color: var(--text); }
+  .opt:hover:not(:disabled) { border-color: var(--green); background: var(--green-light); }
+  .opt.correct { background: var(--green-light); border-color: var(--green); color: var(--green-text); }
+  .opt.wrong { background: var(--red-light); border-color: var(--red); color: var(--red-text); }
+  .explanation { margin-top: 16px; padding: 14px; background: #f9fafb; border-radius: 8px; font-size: 14px; color: var(--muted); line-height: 1.6; display: none; }
+  .explanation.show { display: block; }
+  .q-nav { display: flex; justify-content: space-between; margin-top: 20px; gap: 12px; }
+  .q-nav button { padding: 10px 24px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; background: var(--card); font-family: inherit; color: var(--text); transition: all 0.15s; }
+  .q-nav button:hover { border-color: var(--green); }
+  .q-nav .next { background: var(--green); color: #fff; border-color: var(--green); }
+  .q-nav .next:hover { background: var(--green-dark); }
+
+  #result { display: none; }
+  .score-hero { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px; text-align: center; margin-bottom: 20px; }
+  .score-circle { width: 100px; height: 100px; border-radius: 50%; background: var(--green-light); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+  .score-num { font-size: 32px; font-weight: 700; color: var(--green); }
+  .score-msg { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  .score-sub { color: var(--muted); font-size: 15px; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+  .stat { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; text-align: center; }
+  .stat-val { font-size: 24px; font-weight: 700; }
+  .stat-lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .review-title { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
+  .rev-item { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 8px; }
+  .rev-q { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+  .rev-ans { font-size: 13px; color: var(--muted); }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; margin-right: 6px; }
+  .badge-ok { background: var(--green-light); color: var(--green-text); }
+  .badge-no { background: var(--red-light); color: var(--red-text); }
+  .result-btns { display: flex; gap: 12px; margin-top: 20px; }
+  .result-btns button { flex: 1; padding: 12px; border-radius: var(--radius); font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+  .btn-retry { background: var(--green); color: #fff; border: none; }
+  .btn-retry:hover { background: var(--green-dark); }
+  .btn-home { background: var(--card); color: var(--text); border: 1.5px solid var(--border); }
+  .btn-home:hover { border-color: var(--green); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">🔬 BioTest</div>
+  <div class="nav-badge" id="nav-badge"></div>
+</nav>
+
+<div class="container">
+
+  <div id="setup">
+    <h1>Biologiya testi</h1>
+    <p>Mavzu tanlang — savollar avtomatik yaratiladi.</p>
+
+    <div class="section-label">Mavzu tanlang</div>
+    <div class="topics">
+      <div class="topic" onclick="toggleTopic(this,'Hujayra biologiyasi')">🔬 Hujayra</div>
+      <div class="topic" onclick="toggleTopic(this,'Genetika')">🧬 Genetika</div>
+      <div class="topic" onclick="toggleTopic(this,'Fotosintez')">🌿 Fotosintez</div>
+      <div class="topic" onclick="toggleTopic(this,'Evolutsiya')">🦎 Evolutsiya</div>
+      <div class="topic" onclick="toggleTopic(this,'Ekologiya')">🌍 Ekologiya</div>
+      <div class="topic" onclick="toggleTopic(this,'Inson anatomiyasi')">🫀 Anatomiya</div>
+      <div class="topic" onclick="toggleTopic(this,'Mikroblar va viruslar')">🦠 Mikroblar</div>
+      <div class="topic" onclick="toggleTopic(this,&quot;O'simliklar&quot;)">🌱 O'simliklar</div>
+    </div>
+
+    <div class="config">
+      <div class="config-item">
+        <label>Savollar soni</label>
+        <select id="q-count">
+          <option value="5">5 ta</option>
+          <option value="10" selected>10 ta</option>
+          <option value="15">15 ta</option>
+          <option value="20">20 ta</option>
+        </select>
+      </div>
+      <div class="config-item">
+        <label>Qiyinlik</label>
+        <select id="difficulty">
+          <option value="oson">Oson</option>
+          <option value="o'rta" selected>O'rta</option>
+          <option value="qiyin">Qiyin</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="error" id="error-box"></div>
+    <button class="start-btn" id="start-btn" onclick="startQuiz()" disabled>Mavzu tanlang</button>
+  </div>
+
+  <div id="loading">
+    <div class="spinner"></div>
+    <p id="loading-msg">Savollar tayyorlanmoqda...</p>
+  </div>
+
+  <div id="quiz">
+    <div class="prog-wrap">
+      <div class="prog-top">
+        <span id="prog-text">1 / 10</span>
+        <span id="prog-pct">10%</span>
+      </div>
+      <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
+    </div>
+    <div class="q-card">
+      <div class="q-tag" id="q-tag"></div>
+      <div class="q-text" id="q-text"></div>
+      <div class="options" id="options"></div>
+      <div class="explanation" id="explanation"></div>
+    </div>
+    <div class="q-nav" id="q-nav"></div>
+  </div>
+
+  <div id="result">
+    <div class="score-hero">
+      <div class="score-circle"><div class="score-num" id="score-num"></div></div>
+      <div class="score-msg" id="score-msg"></div>
+      <div class="score-sub" id="score-sub"></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-val" style="color:var(--green)" id="s-correct"></div><div class="stat-lbl">To'g'ri</div></div>
+      <div class="stat"><div class="stat-val" style="color:var(--red)" id="s-wrong"></div><div class="stat-lbl">Noto'g'ri</div></div>
+      <div class="stat"><div class="stat-val" id="s-total"></div><div class="stat-lbl">Jami</div></div>
+    </div>
+    <div class="review-title">Savollar sharhi</div>
+    <div id="review-list"></div>
+    <div class="result-btns">
+      <button class="btn-retry" onclick="retryQuiz()">Qayta urinish</button>
+      <button class="btn-home" onclick="backToSetup()">Bosh sahifa</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// BU YERGA O'Z WORKER URL INGIZNI QO'YING
+// Masalan: https://biotest.SIZNING_ISMINGIZ.workers.dev
+// ============================================================
+const WORKER_URL = "https://orange-dream-6191.asilbektukhtaboyev02.workers.dev";
+
+let selectedTopics = [], questions = [], userAnswers = {}, currentQ = 0;
+
+function toggleTopic(el, topic) {
+  el.classList.toggle('on');
+  if (el.classList.contains('on')) selectedTopics.push(topic);
+  else selectedTopics = selectedTopics.filter(t => t !== topic);
+  const btn = document.getElementById('start-btn');
+  btn.disabled = selectedTopics.length === 0;
+  btn.textContent = selectedTopics.length > 0 ? 'Testni boshlash →' : 'Mavzu tanlang';
+}
+
+function show(id) {
+  ['setup','loading','quiz','result'].forEach(s =>
+    document.getElementById(s).style.display = s === id ? 'block' : 'none'
+  );
+}
+
+async function startQuiz() {
+  document.getElementById('error-box').style.display = 'none';
+  show('loading');
+  const msgs = ['Savollar yaratilmoqda...','AI ishlayapti...','Deyarli tayyor...'];
+  let mi = 0;
+  const lt = setInterval(() => { document.getElementById('loading-msg').textContent = msgs[mi++ % msgs.length]; }, 1800);
+
+  try {
+    const res = await fetch(WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        topics: selectedTopics.join(', '),
+        count: document.getElementById('q-count').value,
+        difficulty: document.getElementById('difficulty').value,
+      })
+    });
+    clearInterval(lt);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    questions = data.questions;
+    userAnswers = {}; currentQ = 0;
+    const badge = document.getElementById('nav-badge');
+    badge.textContent = selectedTopics.join(', ');
+    badge.classList.add('show');
+    show('quiz'); renderQ();
+  } catch(e) {
+    clearInterval(lt);
+    const eb = document.getElementById('error-box');
+    eb.textContent = 'Xatolik: ' + e.message;
+    eb.style.display = 'block';
+    show('setup');
+  }
+}
+
+function renderQ() {
+  const q = questions[currentQ], total = questions.length;
+  const pct = Math.round(((currentQ + 1) / total) * 100);
+  document.getElementById('prog-text').textContent = `${currentQ + 1} / ${total}`;
+  document.getElementById('prog-pct').textContent = pct + '%';
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('q-tag').textContent = q.topic || 'Biologiya';
+  document.getElementById('q-text').textContent = q.q;
+
+  const answered = userAnswers[currentQ] !== undefined;
+  document.getElementById('options').innerHTML = q.options.map((opt, i) => {
+    let cls = 'opt';
+    if (answered) {
+      if (i === q.correct) cls += ' correct';
+      else if (i === userAnswers[currentQ]) cls += ' wrong';
+    }
+    return `<button class="${cls}" onclick="answer(${i})" ${answered ? 'disabled' : ''}>${opt}</button>`;
+  }).join('');
+
+  const expl = document.getElementById('explanation');
+  expl.textContent = '💡 ' + (q.explanation || '');
+  expl.className = 'explanation' + (answered ? ' show' : '');
+
+  const isLast = currentQ === total - 1;
+  document.getElementById('q-nav').innerHTML =
+    (currentQ > 0 ? `<button onclick="go(-1)">← Orqaga</button>` : '<span></span>') +
+    `<button class="next" onclick="${isLast ? 'showResult()' : 'go(1)'}">${isLast ? "Natijani ko'rish →" : 'Keyingi →'}</button>`;
+}
+
+function answer(idx) {
+  if (userAnswers[currentQ] !== undefined) return;
+  userAnswers[currentQ] = idx; renderQ();
+}
+function go(dir) { currentQ += dir; renderQ(); }
+
+function showResult() {
+  show('result');
+  document.getElementById('nav-badge').classList.remove('show');
+  let correct = 0;
+  questions.forEach((q, i) => { if (userAnswers[i] === q.correct) correct++; });
+  const total = questions.length, pct = Math.round((correct / total) * 100);
+  document.getElementById('score-num').textContent = pct + '%';
+  document.getElementById('s-correct').textContent = correct;
+  document.getElementById('s-wrong').textContent = total - correct;
+  document.getElementById('s-total').textContent = total;
+  const msgs = [[90,'🎉 Ajoyib! Siz ekspertsiz!'],[70,'👍 Yaxshi natija!'],[50,'💪 Davom eting!'],[0,"📚 Ko'proq o'qish kerak"]];
+  const [,msg] = msgs.find(([min]) => pct >= min);
+  document.getElementById('score-msg').textContent = msg;
+  document.getElementById('score-sub').textContent = `${correct} ta to'g'ri, ${total - correct} ta noto'g'ri`;
+  document.getElementById('review-list').innerHTML = questions.map((q, i) => {
+    const ok = userAnswers[i] === q.correct;
+    const ua = userAnswers[i] !== undefined ? q.options[userAnswers[i]] : 'Javob berilmadi';
+    return `<div class="rev-item">
+      <div class="rev-q">${i+1}. ${q.q}</div>
+      <div class="rev-ans"><span class="badge ${ok ? 'badge-ok' : 'badge-no'}">${ok ? "✓ To'g'ri" : "✗ Noto'g'ri"}</span>${ok ? q.options[q.correct] : `Siz: ${ua} | To'g'ri: ${q.options[q.correct]}`}</div>
+    </div>`;
+  }).join('');
+}
+function retryQuiz() { userAnswers = {}; currentQ = 0; show('quiz'); renderQ(); }
+function backToSetup() { show('setup'); }
+</script>
+</body>
+</html>
